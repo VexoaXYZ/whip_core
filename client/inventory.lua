@@ -671,6 +671,12 @@ AddEventHandler('whip_core:player:died', function()
     if invOpen then Inventory.close() end
 end)
 
+-- So does a logout: its focus outlived character select, and the next character came in with the last one's
+-- inventory on screen.
+AddEventHandler('whip_core:player:logout', function()
+    if invOpen then Inventory.close() end
+end)
+
 -- Satellite UIs: resources that declared their own screen open, so IsAnyUIOpen covers them.
 -- Keyed from the calling resource (Registry.caller) and dropped when it stops.
 --- [resource] = { [key] = { keepHud = bool } }; a resource with one screen passes no key.
@@ -2037,6 +2043,12 @@ local function CancelGiveMode()
     giveRayTarget   = nil
     giveRayLastCheck = 0
 end
+
+-- A logout ends give mode: for up to GIVE_TIMEOUT after character select, E gave from the next character's
+-- inventory at the slot this one picked.
+AddEventHandler('whip_core:player:logout', function()
+    if giveMode then CancelGiveMode() end
+end)
 
 -- Forward-declared: the give tick lives below its raycast helper.
 local startGiveTick
