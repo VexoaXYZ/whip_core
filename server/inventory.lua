@@ -2529,8 +2529,14 @@ local function declaredUse(itemKey, spec, owner)
         for k, v in pairs(bar) do opts[k] = v end
         opts.item = { item = itemKey, metadata = slotData and slotData.metadata or nil }
         _timedUseRunning[source] = true
-        local done = TimedAction.progress(source, opts, owner)
+        -- Cleared on every way out: a bar that errors must not leave the latch set, or every timed item is
+        -- refused for this player (and the next to get their id) until a restart.
+        local called, done = pcall(TimedAction.progress, source, opts, owner)
         _timedUseRunning[source] = nil
+        if not called then
+            ErrorTap.caught(('[whip_core:inv] the bar for "%s" (%s) errored: %s'):format(itemKey, tostring(owner), tostring(done)), owner)
+            return false, 'Use failed'
+        end
         if not done then return false, '' end
 
         -- ---- still the same item? They had the whole bar to move or drop it. ----
