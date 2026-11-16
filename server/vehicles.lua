@@ -1822,7 +1822,10 @@ function Vehicles.mergeClientProperties(vehicleId, props)
 
     -- The record, with the one field a report is allowed to move.
     local out = stored
-    if reported.dirtLevel ~= nil then out.dirtLevel = reported.dirtLevel end
+    -- GTA's own range, 0 to 15. Anything else (1e308, a NaN, which no comparison stops) was saved and sent to every
+    -- game that sees the car; a NaN also re-saved on every report, as it is never "within 0.5" of what is stored.
+    local dirt = tonumber(reported.dirtLevel)
+    if dirt and dirt == dirt then out.dirtLevel = math.max(0.0, math.min(15.0, dirt)) end
 
     return out, held
 end
